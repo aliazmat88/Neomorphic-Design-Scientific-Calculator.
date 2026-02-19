@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculator — Design</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: #0a0a0f;
+  color: #fff;
+  font-family: 'Syne', sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── Hero ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 60px 24px;
+}
+
+.hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 40%, #1a1230 0%, #0a0a0f 70%);
+}
+.hero-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,192,48,0.12) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -60%);
+  pointer-events: none;
+}
+
+.hero-label {
+  position: relative;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  color: #f0c030;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+.hero-title {
+  position: relative;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.4s forwards;
+}
+.hero-title em {
+  font-style: italic;
+  color: #f0c030;
+}
+.hero-subtitle {
+  position: relative;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.45);
+  text-align: center;
+  max-width: 400px;
+  line-height: 1.7;
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.6s forwards;
+}
+
+/* floating calc in hero */
+.hero-calc-wrap {
+  position: relative;
+  opacity: 0;
+  animation: fadeUp 1s 0.8s forwards;
+}
+.hero-calc-shadow {
+  position: absolute;
+  bottom: -40px; left: 50%;
+  transform: translateX(-50%);
+  width: 300px; height: 60px;
+  background: radial-gradient(ellipse, rgba(240,192,48,0.3) 0%, transparent 70%);
+  filter: blur(20px);
+}
+
+/* ── Section headings ── */
+.section {
+  padding: 100px 24px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+.section-label {
+  font-size: 11px;
+  letter-spacing: 4px;
+  font-weight: 700;
+  color: #f0c030;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(32px, 5vw, 56px);
+  font-weight: 700;
+  margin-bottom: 60px;
+  line-height: 1.1;
+}
+.section-title em { font-style: italic; color: #f0c030; }
+
+
+.desk-scene {
+  width: 100%;
+  background: #111118;
+  border-radius: 32px;
+  padding: 80px 60px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 80px;
+  flex-wrap: wrap;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.desk-scene::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 70% at 30% 50%, rgba(240,192,48,0.06) 0%, transparent 60%);
+}
+.desk-texture {
+  position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 40px,
+    rgba(255,255,255,0.01) 40px,
+    rgba(255,255,255,0.01) 41px
+  ),
+  repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 40px,
+    rgba(255,255,255,0.01) 40px,
+    rgba(255,255,255,0.01) 41px
+  );
+}
+
+.desk-copy {
+  position: relative;
+  max-width: 340px;
+  z-index: 2;
+}
+.desk-copy h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.desk-copy h3 em { font-style: italic; color: #f0c030; }
+.desk-copy p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.8;
+  margin-bottom: 28px;
+}
+.desk-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tag {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.5);
+}
+.tag.gold {
+  border-color: rgba(240,192,48,0.4);
+  color: #f0c030;
+  background: rgba(240,192,48,0.08);
+}
+
+/* ── Calculator render (CSS replica) ── */
+.calc {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+/* ──── VARIANT A: Classic (original warm grey) ──── */
+.calc-a {
+  --bg: #e8eaed;
+  --sl: #ffffff;
+  --sd: #c5c8d0;
+  --tp: #5a5e6b;
+  --ts: #9da3b0;
+  --acc: #f0c030;
+  width: 260px;
+  background: var(--bg);
+  border-radius: 34px;
+  padding: 20px 18px 24px;
+  box-shadow: 24px 24px 60px rgba(0,0,0,0.5), -8px -8px 30px rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05);
+  transform: perspective(800px) rotateY(-8deg) rotateX(3deg);
+  transition: transform 0.4s ease;
+}
+.calc-a:hover { transform: perspective(800px) rotateY(-4deg) rotateX(1deg) translateY(-8px); }
+
+/* ──── VARIANT B: Midnight dark ──── */
+.calc-b {
+  --bg: #1a1d27;
+  --sl: #252836;
+  --sd: #0f1118;
+  --tp: #e2e5f0;
+  --ts: #6b7089;
+  --acc: #f0c030;
+  width: 260px;
+  background: var(--bg);
+  border-radius: 34px;
+  padding: 20px 18px 24px;
+  box-shadow: 24px 24px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);
+  transform: perspective(800px) rotateY(-6deg) rotateX(2deg);
+  transition: transform 0.4s ease;
+}
+.calc-b:hover { transform: perspective(800px) rotateY(-2deg) rotateX(0deg) translateY(-8px); }
+
+/* ──── VARIANT C: Forest green ──── */
+.calc-c {
+  --bg: #1e2d24;
+  --sl: #253320;
+  --sd: #121a14;
+  --tp: #d4e8d0;
+  --ts: #5a7a60;
+  --acc: #7cba50;
+  width: 260px;
+  background: var(--bg);
+  border-radius: 34px;
+  padding: 20px 18px 24px;
+  box-shadow: 24px 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05);
+  transform: perspective(800px) rotateY(-6deg) rotateX(2deg);
+  transition: transform 0.4s ease;
+}
+.calc-c:hover { transform: perspective(800px) rotateY(-2deg) rotateX(0deg) translateY(-8px); }
+
+/* ──── VARIANT D: Rose blush ──── */
+.calc-d {
+  --bg: #f5eded;
+  --sl: #fdf8f8;
+  --sd: #d4c8c8;
+  --tp: #6b3f4a;
+  --ts: #b08090;
+  --acc: #d94060;
+  width: 260px;
+  background: var(--bg);
+  border-radius: 34px;
+  padding: 20px 18px 24px;
+  box-shadow: 24px 24px 60px rgba(0,0,0,0.4), -8px -8px 20px rgba(255,255,255,0.6), 0 0 0 1px rgba(0,0,0,0.04);
+  transform: perspective(800px) rotateY(-6deg) rotateX(2deg);
+  transition: transform 0.4s ease;
+}
+.calc-d:hover { transform: perspective(800px) rotateY(-2deg) rotateX(0deg) translateY(-8px); }
+
+/* shared calc internals */
+.c-display {
+  text-align: right;
+  padding: 8px 4px 14px;
+}
+.c-expr {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 300;
+  color: var(--ts);
+  margin-bottom: 4px;
+  min-height: 14px;
+}
+.c-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 34px;
+  font-weight: 300;
+  color: var(--tp);
+  line-height: 1;
+}
+
+.c-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+.c-btn {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: none;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--tp);
+  background: var(--bg);
+  box-shadow: 4px 4px 10px var(--sd), -4px -4px 10px var(--sl);
+  transition: box-shadow 0.2s;
+}
+.c-btn.op {
+  color: var(--ts);
+  font-size: 15px;
+  font-weight: 300;
+}
+.c-btn.special {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.c-btn.eq {
+  background: var(--acc);
+  box-shadow: 3px 3px 8px var(--sd), 0 0 15px rgba(240,192,48,0.3);
+  color: #fff;
+  font-size: 16px;
+}
+.c-bottom {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 7px;
+  margin-top: 7px;
+}
+.c-btn-wide {
+  border-radius: 28px;
+  height: 50px;
+  border: none;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--tp);
+  background: var(--bg);
+  box-shadow: 4px 4px 10px var(--sd), -4px -4px 10px var(--sl);
+}
+
+/* ── Color palette strip ── */
+.palette-section {
+  padding: 80px 24px 100px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 32px;
+}
+.palette-card {
+  border-radius: 28px;
+  padding: 32px 28px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+}
+.palette-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+}
+.palette-card-classic { background: linear-gradient(135deg, #d4d6da 0%, #eceef1 100%); }
+.palette-card-midnight { background: linear-gradient(135deg, #141620 0%, #1f2235 100%); border: 1px solid rgba(255,255,255,0.07); }
+.palette-card-forest { background: linear-gradient(135deg, #16201a 0%, #243028 100%); border: 1px solid rgba(255,255,255,0.06); }
+.palette-card-rose { background: linear-gradient(135deg, #f0e6e6 0%, #fdf6f6 100%); }
+
+.palette-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.palette-desc {
+  font-size: 12px;
+  font-weight: 400;
+  opacity: 0.55;
+  margin-bottom: 24px;
+  font-family: 'DM Sans', sans-serif;
+}
+.palette-swatches {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.swatch {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.palette-num {
+  font-family: 'DM Mono', monospace;
+  font-size: 32px;
+  font-weight: 300;
+}
+
+
+.phone-scene {
+  width: 100%;
+  min-height: 600px;
+  background: linear-gradient(160deg, #0e0e1a 0%, #15101f 50%, #0e1418 100%);
+  border-radius: 32px;
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 60px 40px;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: hidden;
+}
+.phone-scene::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120,80,255,0.08) 0%, transparent 70%);
+  bottom: -100px; right: -100px;
+  pointer-events: none;
+}
+
+/* phone shell */
+.phone {
+  width: 220px;
+  background: #1a1a1a;
+  border-radius: 40px;
+  padding: 12px;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.1);
+  flex-shrink: 0;
+  position: relative;
+}
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 16px; left: 50%;
+  transform: translateX(-50%);
+  width: 60px; height: 6px;
+  background: #0d0d0d;
+  border-radius: 3px;
+  z-index: 10;
+}
+.phone-screen {
+  background: var(--bg, #e8eaed);
+  border-radius: 30px;
+  overflow: hidden;
+  padding: 24px 14px 18px;
+}
+
+.phone-tilt-left {
+  transform: perspective(1000px) rotateY(15deg) rotateX(-4deg) translateX(-20px);
+  transition: transform 0.4s ease;
+}
+.phone-tilt-left:hover {
+  transform: perspective(1000px) rotateY(5deg) rotateX(-1deg) translateX(-5px) translateY(-12px);
+}
+.phone-tilt-right {
+  transform: perspective(1000px) rotateY(-15deg) rotateX(-4deg) translateX(20px);
+  transition: transform 0.4s ease;
+}
+.phone-tilt-right:hover {
+  transform: perspective(1000px) rotateY(-5deg) rotateX(-1deg) translateX(5px) translateY(-12px);
+}
+.phone-center {
+  transform: perspective(1000px) rotateX(-3deg) translateY(-10px);
+  transition: transform 0.4s ease;
+  z-index: 2;
+}
+.phone-center:hover {
+  transform: perspective(1000px) rotateX(-1deg) translateY(-20px);
+}
+
+/* ── Feature grid ── */
+.feature-section {
+  padding: 80px 24px 100px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+.feature-card {
+  background: #111118;
+  border-radius: 24px;
+  padding: 32px 28px;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: border-color 0.3s, transform 0.3s;
+}
+.feature-card:hover {
+  border-color: rgba(240,192,48,0.3);
+  transform: translateY(-4px);
+}
+.feature-icon {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  background: rgba(240,192,48,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+.feature-card h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.feature-card p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.7;
+}
+
+/* ── Floating label ── */
+.float-label {
+  position: absolute;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.float-label.gold {
+  background: rgba(240,192,48,0.15);
+  border-color: rgba(240,192,48,0.3);
+  color: #f0c030;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  padding: 60px 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.25);
+}
+.footer span { color: #f0c030; }
+
+/* ── Divider ── */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  margin: 0 auto;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0f; }
+::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+
+/* Floating badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(240,192,48,0.1);
+  border: 1px solid rgba(240,192,48,0.25);
+  border-radius: 20px;
+  padding: 4px 12px 4px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #f0c030;
+  letter-spacing: 0.5px;
+  margin-bottom: 20px;
+}
+.badge-dot {
+  width: 6px; height: 6px;
+  background: #f0c030;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-label">Design Showcase</div>
+  <h1 class="hero-title">Crafted for <em>Precision</em></h1>
+  <p class="hero-subtitle">
+  <a href="https://example.com" class="launch-link">Launch Now</a>
+</p>
+
+<style>
+.launch-link {
+  color: white;       /* initial color */
+  text-decoration: none; /* remove underline if needed */
+}
+
+.launch-link:hover {
+  color: blue;        /* color on hover */
+}
+</style>
+
+
+  <!-- Hero calc render -->
+  <div class="hero-calc-wrap">
+    <div class="calc calc-a" style="width:280px; transform: perspective(900px) rotateX(6deg) rotateY(0deg);">
+      <div class="c-display">
+        <div class="c-expr">1,7658 ÷ 2</div>
+        <div class="c-num">0,8829</div>
+      </div>
+      <div class="c-grid">
+        <div class="c-btn special">AC</div>
+        <div class="c-btn special">√</div>
+        <div class="c-btn special">%</div>
+        <div class="c-btn op">÷</div>
+        <div class="c-btn op">×</div>
+        <div class="c-btn">1</div>
+        <div class="c-btn">2</div>
+        <div class="c-btn">3</div>
+        <div class="c-btn op">−</div>
+        <div class="c-btn">4</div>
+        <div class="c-btn">5</div>
+        <div class="c-btn">6</div>
+        <div class="c-btn op">+</div>
+        <div class="c-btn">7</div>
+        <div class="c-btn">8</div>
+        <div class="c-btn">9</div>
+      </div>
+      <div class="c-bottom">
+        <div class="c-btn eq" style="border-radius:50%; height:58px;">=</div>
+        <div class="c-btn-wide">0</div>
+        <div class="c-btn" style="border-radius:50%; height:58px;">,</div>
+      </div>
+    </div>
+    <div class="hero-calc-shadow"></div>
+  </div>
+
+  <!-- scroll hint -->
+  <div style="position:absolute; bottom:32px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:6px; opacity:0.35; animation: fadeUp 1s 1.4s forwards; opacity:0;">
+    <span style="font-size:10px; letter-spacing:3px; font-weight:600;">SCROLL</span>
+    <div style="width:1px; height:40px; background: linear-gradient(to bottom, rgba(255,255,255,0.5), transparent);"></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════ DARK DESK SCENE ═══════════════════════════ -->
+<section class="section">
+  <div class="section-label"></div>
+  <h2 class="section-title reveal">Born in the <em>Dark</em></h2>
+
+  <div class="desk-scene reveal">
+    <div class="desk-texture"></div>
+
+    <div class="desk-copy">
+      <h3>Engineered for<br><em>Night Owls</em></h3>
+      <p>The midnight variant wraps familiar neumorphic softness in deep navy, creating depth that feels natural on any screen after dark.</p>
+      <div class="desk-tags">
+        <span class="tag gold">Scientific</span>
+        <span class="tag">Dark Mode</span>
+        <span class="tag">Neumorphic</span>
+        <span class="tag">24 Functions</span>
+      </div>
+    </div>
+
+    <!-- Midnight calc -->
+    <div class="calc calc-b" style="position:relative;">
+      <div class="float-label gold" style="top:-18px; right:10px;">Dark Edition</div>
+      <div class="c-display">
+        <div class="c-expr">sin(45°)</div>
+        <div class="c-num">0,7071</div>
+      </div>
+      <div class="c-grid">
+        <div class="c-btn special">AC</div>
+        <div class="c-btn special">√</div>
+        <div class="c-btn special">%</div>
+        <div class="c-btn op">÷</div>
+        <div class="c-btn op">×</div>
+        <div class="c-btn">1</div>
+        <div class="c-btn">2</div>
+        <div class="c-btn">3</div>
+        <div class="c-btn op">−</div>
+        <div class="c-btn">4</div>
+        <div class="c-btn">5</div>
+        <div class="c-btn">6</div>
+        <div class="c-btn op">+</div>
+        <div class="c-btn">7</div>
+        <div class="c-btn">8</div>
+        <div class="c-btn">9</div>
+      </div>
+      <div class="c-bottom">
+        <div class="c-btn eq" style="border-radius:50%; height:52px;">=</div>
+        <div class="c-btn-wide">0</div>
+        <div class="c-btn" style="border-radius:50%; height:52px;">,</div>
+      </div>
+    </div>
+
+    <!-- Classic calc also shown -->
+    <div class="calc calc-a" style="transform: perspective(800px) rotateY(6deg) rotateX(3deg) scale(0.88); opacity:0.7; position:relative; top: 20px;">
+      <div class="float-label" style="top:-18px; left:10px;">Classic</div>
+      <div class="c-display">
+        <div class="c-expr"></div>
+        <div class="c-num">3,14159</div>
+      </div>
+      <div class="c-grid">
+        <div class="c-btn special">AC</div>
+        <div class="c-btn special">√</div>
+        <div class="c-btn special">%</div>
+        <div class="c-btn op">÷</div>
+        <div class="c-btn op">×</div>
+        <div class="c-btn">1</div>
+        <div class="c-btn">2</div>
+        <div class="c-btn">3</div>
+        <div class="c-btn op">−</div>
+        <div class="c-btn">4</div>
+        <div class="c-btn">5</div>
+        <div class="c-btn">6</div>
+        <div class="c-btn op">+</div>
+        <div class="c-btn">7</div>
+        <div class="c-btn">8</div>
+        <div class="c-btn">9</div>
+      </div>
+      <div class="c-bottom">
+        <div class="c-btn eq" style="border-radius:50%; height:52px;">=</div>
+        <div class="c-btn-wide">0</div>
+        <div class="c-btn" style="border-radius:50%; height:52px;">,</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ PHONE TRIO ═══════════════════════════ -->
+<section class="section" style="padding-top: 20px;">
+  <div class="section-label"></div>
+  <h2 class="section-title reveal">Three <em>Colorways</em></h2>
+
+  <div class="phone-scene reveal">
+
+    <!-- Left phone: forest -->
+    <div class="phone phone-tilt-left" style="--bg:#1e2d24;">
+      <div class="phone-screen" style="--bg:#1e2d24; --sl:#253320; --sd:#121a14; --tp:#d4e8d0; --ts:#5a7a60; --acc:#7cba50; background:#1e2d24;">
+        <div class="c-display" style="padding: 4px 2px 12px;">
+          <div class="c-expr" style="font-size:9px; color:#5a7a60;">ln(e²)</div>
+          <div class="c-num" style="font-size:28px; color:#d4e8d0;">2,0000</div>
+        </div>
+        <div class="c-grid" style="gap:5px;">
+          <div class="c-btn special" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0; font-size:10px;">AC</div>
+          <div class="c-btn special" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0; font-size:12px;">√</div>
+          <div class="c-btn special" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0; font-size:12px;">%</div>
+          <div class="c-btn op" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#5a7a60; font-size:14px;">÷</div>
+          <div class="c-btn op" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#5a7a60; font-size:14px;">×</div>
+          <div class="c-btn" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">1</div>
+          <div class="c-btn" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">2</div>
+          <div class="c-btn" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">3</div>
+          <div class="c-btn op" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#5a7a60;">−</div>
+          <div class="c-btn" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">4</div>
+          <div class="c-btn" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">5</div>
+          <div class="c-btn" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">6</div>
+          <div class="c-btn op" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#5a7a60;">+</div>
+          <div class="c-btn" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">7</div>
+          <div class="c-btn" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">8</div>
+          <div class="c-btn" style="background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">9</div>
+        </div>
+        <div class="c-bottom" style="gap:5px; margin-top:5px;">
+          <div style="border-radius:50%; height:44px; background:#7cba50; display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; box-shadow:2px 2px 8px rgba(0,0,0,0.4);">=</div>
+          <div class="c-btn-wide" style="height:44px; background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0;">0</div>
+          <div style="border-radius:50%; height:44px; background:#1e2d24; box-shadow:3px 3px 7px #121a14,-3px -3px 7px #253320; color:#d4e8d0; display:flex; align-items:center; justify-content:center;">,</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center phone: classic (featured) -->
+    <div class="phone phone-center" style="width:240px; --bg:#e8eaed;">
+      <div class="phone-screen" style="background:#e8eaed;">
+        <div class="c-display" style="padding:4px 4px 16px;">
+          <div class="c-expr" style="color:#9da3b0; font-size:10px;">1,7658 ÷ 2</div>
+          <div class="c-num" style="color:#5a5e6b;">0,8829</div>
+        </div>
+        <div class="c-grid" style="gap:6px;">
+          <div class="c-btn special" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b; font-size:10px;">AC</div>
+          <div class="c-btn special" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">√</div>
+          <div class="c-btn special" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">%</div>
+          <div class="c-btn op" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#9da3b0;">÷</div>
+          <div class="c-btn op" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#9da3b0;">×</div>
+          <div class="c-btn" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">1</div>
+          <div class="c-btn" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">2</div>
+          <div class="c-btn" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">3</div>
+          <div class="c-btn op" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#9da3b0;">−</div>
+          <div class="c-btn" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">4</div>
+          <div class="c-btn" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">5</div>
+          <div class="c-btn" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">6</div>
+          <div class="c-btn op" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#9da3b0;">+</div>
+          <div class="c-btn" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">7</div>
+          <div class="c-btn" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">8</div>
+          <div class="c-btn" style="background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">9</div>
+        </div>
+        <div class="c-bottom" style="gap:6px; margin-top:6px;">
+          <div style="border-radius:50%; height:52px; background:#f0c030; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; box-shadow:3px 3px 10px #c9a818, -2px -2px 8px #ffe070;">=</div>
+          <div class="c-btn-wide" style="height:52px; background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b;">0</div>
+          <div style="border-radius:50%; height:52px; background:#e8eaed; box-shadow:4px 4px 9px #c5c8d0,-4px -4px 9px #ffffff; color:#5a5e6b; display:flex; align-items:center; justify-content:center;">,</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right phone: rose -->
+    <div class="phone phone-tilt-right" style="--bg:#f5eded;">
+      <div class="phone-screen" style="background:#f5eded;">
+        <div class="c-display" style="padding:4px 2px 12px;">
+          <div class="c-expr" style="color:#b08090; font-size:9px;">x²</div>
+          <div class="c-num" style="font-size:28px; color:#6b3f4a;">144</div>
+        </div>
+        <div class="c-grid" style="gap:5px;">
+          <div class="c-btn special" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a; font-size:10px;">AC</div>
+          <div class="c-btn special" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a; font-size:12px;">√</div>
+          <div class="c-btn special" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a; font-size:12px;">%</div>
+          <div class="c-btn op" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#b08090; font-size:14px;">÷</div>
+          <div class="c-btn op" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#b08090; font-size:14px;">×</div>
+          <div class="c-btn" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">1</div>
+          <div class="c-btn" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">2</div>
+          <div class="c-btn" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">3</div>
+          <div class="c-btn op" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#b08090;">−</div>
+          <div class="c-btn" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">4</div>
+          <div class="c-btn" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">5</div>
+          <div class="c-btn" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">6</div>
+          <div class="c-btn op" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#b08090;">+</div>
+          <div class="c-btn" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">7</div>
+          <div class="c-btn" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">8</div>
+          <div class="c-btn" style="background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">9</div>
+        </div>
+        <div class="c-bottom" style="gap:5px; margin-top:5px;">
+          <div style="border-radius:50%; height:44px; background:#d94060; display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px; box-shadow:2px 2px 8px rgba(180,40,60,0.4);">=</div>
+          <div class="c-btn-wide" style="height:44px; background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a;">0</div>
+          <div style="border-radius:50%; height:44px; background:#f5eded; box-shadow:3px 3px 7px #d4c8c8,-3px -3px 7px #fdf8f8; color:#6b3f4a; display:flex; align-items:center; justify-content:center;">,</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- labels -->
+    <div style="position:absolute; bottom:28px; display:flex; gap:60px; flex-wrap:wrap; justify-content:center;">
+      <div style="text-align:center;"><div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.5);">FOREST</div></div>
+      <div style="text-align:center;"><div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.9);">CLASSIC ★</div></div>
+      <div style="text-align:center;"><div style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.5);">ROSE</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ PALETTE GRID ═══════════════════════════ -->
+<section class="palette-section">
+  <div class="section-label"></div>
+  <h2 class="section-title reveal">Color <em>System</em></h2>
+
+  <div class="palette-grid">
+    <div class="palette-card palette-card-classic reveal">
+      <div class="palette-name" style="color:#5a5e6b;">Classic Warm</div>
+      <div class="palette-desc" style="color:#5a5e6b;">The original. Soft grey neumorphism.</div>
+      <div class="palette-swatches">
+        <div class="swatch" style="background:#e8eaed;"></div>
+        <div class="swatch" style="background:#c5c8d0;"></div>
+        <div class="swatch" style="background:#5a5e6b;"></div>
+        <div class="swatch" style="background:#f0c030;"></div>
+      </div>
+      <div class="palette-num" style="color:#5a5e6b;">0,8829</div>
+    </div>
+
+    <div class="palette-card palette-card-midnight reveal" style="transition-delay:0.1s;">
+      <div class="palette-name">Midnight Navy</div>
+      <div class="palette-desc">Deep, focused. For late-night work.</div>
+      <div class="palette-swatches">
+        <div class="swatch" style="background:#1a1d27;"></div>
+        <div class="swatch" style="background:#252836;"></div>
+        <div class="swatch" style="background:#e2e5f0;"></div>
+        <div class="swatch" style="background:#f0c030;"></div>
+      </div>
+      <div class="palette-num" style="color:#e2e5f0;">0,7071</div>
+    </div>
+
+    <div class="palette-card palette-card-forest reveal" style="transition-delay:0.2s;">
+      <div class="palette-name" style="color:#d4e8d0;">Forest Green</div>
+      <div class="palette-desc" style="color:#5a7a60;">Earthy. Organic. Calm.</div>
+      <div class="palette-swatches">
+        <div class="swatch" style="background:#1e2d24;"></div>
+        <div class="swatch" style="background:#253320;"></div>
+        <div class="swatch" style="background:#d4e8d0;"></div>
+        <div class="swatch" style="background:#7cba50;"></div>
+      </div>
+      <div class="palette-num" style="color:#d4e8d0;">2,0000</div>
+    </div>
+
+    <div class="palette-card palette-card-rose reveal" style="transition-delay:0.3s;">
+      <div class="palette-name" style="color:#6b3f4a;">Rose Blush</div>
+      <div class="palette-desc" style="color:#b08090;">Warm, tactile, delicate.</div>
+      <div class="palette-swatches">
+        <div class="swatch" style="background:#f5eded;"></div>
+        <div class="swatch" style="background:#d4c8c8;"></div>
+        <div class="swatch" style="background:#6b3f4a;"></div>
+        <div class="swatch" style="background:#d94060;"></div>
+      </div>
+      <div class="palette-num" style="color:#6b3f4a;">144</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ═══════════════════════════ FEATURE GRID ═══════════════════════════ -->
+<section class="feature-section">
+  <div class="section-label"></div>
+  <h2 class="section-title reveal">Built with <em>Intent</em></h2>
+
+  <div class="feature-grid">
+    <div class="feature-card reveal">
+      <div class="feature-icon">⟳</div>
+      <h4>Neumorphic Depth</h4>
+      <p>Soft shadows create a tactile, physical feel — buttons that look like they can actually be pressed.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:0.1s;">
+      <div class="feature-icon">∫</div>
+      <h4>24 Scientific Functions</h4>
+      <p>Full trig suite, logarithms, exponentials, factorials, memory, and constants — all accessible.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:0.2s;">
+      <div class="feature-icon">◐</div>
+      <h4>Four Colorways</h4>
+      <p>Classic, Midnight, Forest, and Rose — each with carefully tuned shadows for their background.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:0.3s;">
+      <div class="feature-icon">⌨</div>
+      <h4>Keyboard Support</h4>
+      <p>Every key mapped. Numbers, operators, Enter, Backspace, Escape — feel native on desktop.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:0.1s;">
+      <div class="feature-icon">📐</div>
+      <h4>DEG / RAD Toggle</h4>
+      <p>Switch modes instantly. Trig functions respect your choice automatically throughout.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:0.2s;">
+      <div class="feature-icon">⏱</div>
+      <h4>Calculation History</h4>
+      <p>Tap any past result to recall it. Never lose a chain of calculations mid-session.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:0.3s;">
+      <div class="feature-icon">M</div>
+      <h4>Memory Functions</h4>
+      <p>M+, M−, MR, MC — store constants and partial results across complex calculations.</p>
+    </div>
+    <div class="feature-card reveal" style="transition-delay:0.4s;">
+      <div class="feature-icon">✦</div>
+      <h4>Micro-interactions</h4>
+      <p>Every press, hover, and transition is tuned to feel responsive without being distracting.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ FINAL CTA SCENE ═══════════════════════════ -->
+<section style="padding: 60px 24px 120px; max-width:1300px; margin:0 auto;">
+  <div class="desk-scene reveal" style="background: linear-gradient(135deg, #0c0c14 0%, #12101a 100%); min-height: 400px; gap: 60px;">
+    <div style="position:absolute; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(240,192,48,0.07) 0%, transparent 60%); top:50%; left:30%; transform:translate(-50%,-50%); pointer-events:none;"></div>
+
+    <div class="desk-copy" style="max-width:380px; position:relative; z-index:2;">
+      <div class="badge"><span class="badge-dot"></span>AVAILABLE NOW</div>
+      <h3 style="font-size:42px; line-height:1.1; margin-bottom:20px;">The <em>finest</em><br>calculator.</h3>
+      <p style="font-size:15px; line-height:1.8;">Everything you need for scientific, engineering, or everyday calculations — wrapped in a design that makes you want to open it.</p>
+    </div>
+
+    <!-- Big calc render -->
+    <div class="calc" style="width:300px; background:#e8eaed; border-radius:40px; padding:24px 20px 28px; box-shadow: 30px 30px 70px rgba(0,0,0,0.6), -8px -8px 30px rgba(255,255,255,0.04), 0 0 0 1px rgba(255,255,255,0.04); transform: perspective(900px) rotateY(-10deg) rotateX(4deg); transition: transform 0.4s; position:relative; z-index:2; flex-shrink:0;" onmouseenter="this.style.transform='perspective(900px) rotateY(-4deg) rotateX(1deg) translateY(-12px)'" onmouseleave="this.style.transform='perspective(900px) rotateY(-10deg) rotateX(4deg)'">
+      <div class="c-display" style="padding:10px 6px 20px; text-align:right;">
+        <div style="font-family:'DM Mono',monospace; font-size:12px; color:#9da3b0; margin-bottom:6px;">2² + 3²</div>
+        <div style="font-family:'DM Mono',monospace; font-size:52px; font-weight:300; color:#5a5e6b; line-height:1;">13</div>
+      </div>
+      <div class="c-grid" style="gap:9px;">
+        <div class="c-btn special" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1; font-size:12px; font-weight:600;">AC</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1; font-size:17px;">√</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1; font-size:17px;">%</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#9da3b0; width:100%; aspect-ratio:1; font-size:19px; font-weight:300;">÷</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#9da3b0; width:100%; aspect-ratio:1; font-size:19px; font-weight:300;">×</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1;">1</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1;">2</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1;">3</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#9da3b0; width:100%; aspect-ratio:1; font-size:19px; font-weight:300;">−</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1;">4</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1;">5</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1;">6</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#9da3b0; width:100%; aspect-ratio:1; font-size:19px; font-weight:300;">+</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1;">7</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1;">8</div>
+        <div class="c-btn" style="background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; width:100%; aspect-ratio:1;">9</div>
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 2fr 1fr; gap:9px; margin-top:9px;">
+        <div style="border-radius:50%; aspect-ratio:1; background:#f0c030; display:flex; align-items:center; justify-content:center; color:#fff; font-size:20px; box-shadow:4px 4px 12px #c9a818, -3px -3px 10px #ffe070;">=</div>
+        <div style="border-radius:36px; background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; display:flex; align-items:center; justify-content:center; font-size:17px;">0</div>
+        <div style="border-radius:50%; aspect-ratio:1; background:#e8eaed; box-shadow:5px 5px 12px #c5c8d0,-5px -5px 12px #ffffff; color:#5a5e6b; display:flex; align-items:center; justify-content:center;">,</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  Scientific Calculator — Neumorphic Design System &nbsp;·&nbsp; Built with <span>♥</span> by Ali Azmat
+</footer>
+
+<script>
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.1 });
+reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
